@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A self-contained Bible knowledge quiz game.">
+  <title>Bible Quiz | Living Word</title>
+  <style>
+    :root {
+      --ink: #182235;
+      --muted: #697386;
+      --paper: #fffdf8;
+      --linen: #f5f1e9;
+      --navy: #19395b;
+      --blue: #2563a8;
+      --gold: #bf8b2c;
+      --gold-light: #f8edd6;
+      --green: #237255;
+      --green-light: #e5f4ec;
+      --red: #ad3d3d;
+      --red-light: #fbeaea;
+      --border: #e4ded2;
+      --shadow: 0 20px 50px rgba(29, 45, 67, .12);
+    }
+
+    * { box-sizing: border-box; }
+    html { min-height: 100%; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background: radial-gradient(circle at 8% 4%, rgba(205, 170, 98, .18), transparent 28rem),
+                  linear-gradient(135deg, #edf3f5 0%, #f8f5ed 48%, #eef2eb 100%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    button { font: inherit; }
+    .page-shell { width: min(100% - 32px, 820px); margin: 0 auto; padding: 42px 0 48px; }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      color: var(--navy);
+    }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      color: #fff;
+      font-family: Georgia, serif;
+      font-size: 25px;
+      font-weight: 700;
+      background: linear-gradient(145deg, #234d75, #173252);
+      box-shadow: 0 7px 14px rgba(25, 57, 91, .22);
+    }
+    .brand-name { font-size: .84rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+
+    .quiz-card {
+      overflow: hidden;
+      border: 1px solid rgba(228, 222, 210, .92);
+      border-radius: 24px;
+      background: rgba(255, 253, 248, .96);
+      box-shadow: var(--shadow);
+    }
+    .card-header { padding: 30px 36px 24px; background: linear-gradient(120deg, #fcf8ef, #f7f3eb); border-bottom: 1px solid var(--border); }
+    .eyebrow { margin: 0 0 8px; color: var(--gold); font-size: .76rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    h1, h2 { font-family: Georgia, "Times New Roman", serif; }
+    h1 { margin: 0; color: var(--navy); font-size: clamp(2rem, 6vw, 3.05rem); line-height: 1.1; }
+    .subtitle { max-width: 37rem; margin: 12px 0 0; color: var(--muted); font-size: 1rem; }
+
+    .quiz-body { padding: 30px 36px 36px; }
+    .status-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .question-count { color: var(--muted); font-size: .91rem; font-weight: 700; }
+    .score-badge { padding: 5px 10px; border-radius: 999px; color: var(--navy); background: #e9f0f5; font-size: .83rem; font-weight: 800; }
+    .progress-track { height: 7px; margin-bottom: 29px; overflow: hidden; border-radius: 99px; background: #e8e4db; }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--gold), #d8af59); transition: width .35s ease; }
+
+    .question-meta { display: flex; align-items: center; gap: 9px; margin-bottom: 11px; }
+    .category { color: var(--blue); font-size: .77rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .difficulty { padding: 3px 8px; border: 1px solid #e7d9bb; border-radius: 999px; color: #8a6422; background: var(--gold-light); font-size: .72rem; font-weight: 800; }
+    .question { margin: 0 0 23px; color: var(--ink); font-size: clamp(1.3rem, 3vw, 1.7rem); line-height: 1.32; }
+
+    .answers { display: grid; gap: 11px; }
+    .answer {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      min-height: 59px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+      background: #fff;
+      transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease;
+    }
+    .answer:hover:not(:disabled) { border-color: #9bb6ce; background: #f6faff; transform: translateY(-1px); box-shadow: 0 5px 14px rgba(31, 75, 112, .08); }
+    .answer:focus-visible, .primary-button:focus-visible { outline: 3px solid rgba(37, 99, 168, .35); outline-offset: 3px; }
+    .answer-letter { display: grid; flex: 0 0 29px; place-items: center; width: 29px; height: 29px; margin-right: 13px; border: 1px solid #d7dbe1; border-radius: 50%; color: var(--muted); font-size: .78rem; font-weight: 800; }
+    .answer-text { font-size: .98rem; font-weight: 650; }
+    .answer:disabled { cursor: default; }
+    .answer.correct { border-color: #8bc5a7; color: #17533e; background: var(--green-light); }
+    .answer.correct .answer-letter { border-color: var(--green); color: #fff; background: var(--green); }
+    .answer.incorrect { border-color: #e3aaaa; color: #872d2d; background: var(--red-light); }
+    .answer.incorrect .answer-letter { border-color: var(--red); color: #fff; background: var(--red); }
+    .answer.dimmed { opacity: .54; }
+
+    .feedback { display: none; margin-top: 23px; padding: 17px 18px; border: 1px solid; border-radius: 14px; }
+    .feedback.visible { display: block; animation: rise .25s ease-out; }
+    .feedback.correct { border-color: #b7dcc6; background: #f2faf5; }
+    .feedback.incorrect { border-color: #ebc7c7; background: #fff7f6; }
+    .feedback-title { display: block; margin-bottom: 4px; font-size: .95rem; font-weight: 850; }
+    .feedback.correct .feedback-title { color: var(--green); }
+    .feedback.incorrect .feedback-title { color: var(--red); }
+    .feedback-copy { margin: 0; color: #465163; font-size: .93rem; }
+    .reference { display: inline-block; margin-top: 7px; color: var(--navy); font-size: .83rem; font-weight: 800; }
+
+    .actions { display: flex; justify-content: flex-end; margin-top: 23px; }
+    .primary-button { min-width: 166px; padding: 13px 19px; border: 0; border-radius: 11px; color: #fff; font-weight: 800; cursor: pointer; background: linear-gradient(135deg, #245d93, #173a60); box-shadow: 0 8px 16px rgba(25, 57, 91, .2); transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease; }
+    .primary-button:hover { transform: translateY(-1px); box-shadow: 0 11px 20px rgba(25, 57, 91, .26); }
+    .primary-button[hidden] { display: none; }
+
+    .results { display: none; text-align: center; }
+    .results.active { display: block; animation: rise .3s ease-out; }
+    .results .result-emblem { display: grid; place-items: center; width: 74px; height: 74px; margin: 4px auto 19px; border-radius: 50%; color: var(--navy); font-family: Georgia, serif; font-size: 2rem; font-weight: 700; background: var(--gold-light); border: 1px solid #ead8b3; }
+    .results h2 { margin: 0; color: var(--navy); font-size: 2rem; }
+    .result-score { margin: 11px 0 7px; color: var(--gold); font-family: Georgia, serif; font-size: clamp(2.5rem, 8vw, 4rem); font-weight: 700; line-height: 1; }
+    .result-copy { max-width: 440px; margin: 0 auto 25px; color: var(--muted); }
+    .results .primary-button { min-width: 178px; }
+    .quiz-view[hidden] { display: none; }
+    .footer-note { margin: 22px 0 0; color: #7a8391; font-size: .8rem; text-align: center; }
+
+    @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 600px) {
+      .page-shell { width: min(100% - 22px, 820px); padding: 22px 0 28px; }
+      .brand { margin: 0 8px 18px; }
+      .quiz-card { border-radius: 18px; }
+      .card-header, .quiz-body { padding: 24px 20px; }
+      .card-header { padding-bottom: 21px; }
+      .quiz-body { padding-top: 23px; }
+      .question { font-size: 1.34rem; }
+      .answer { min-height: 62px; padding: 12px; }
+      .answer-text { font-size: .95rem; }
+      .actions { display: block; }
+      .primary-button { width: 100%; min-height: 48px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <div class="brand" aria-label="Living Word Bible Quiz">
+      <div class="brand-mark" aria-hidden="true">L</div>
+      <div class="brand-name">Living Word</div>
+    </div>
+
+    <section class="quiz-card" aria-labelledby="quiz-title">
+      <header class="card-header">
+        <p class="eyebrow">Scripture knowledge</p>
+        <h1 id="quiz-title">Bible Quiz</h1>
+        <p class="subtitle">Test your knowledge across the Old and New Testaments. Take your time—each answer includes a helpful reference.</p>
+      </header>
+
+      <div class="quiz-body">
+        <div id="quizView" class="quiz-view">
+          <div class="status-row">
+            <span id="questionCount" class="question-count" aria-live="polite">Question 1 of 15</span>
+            <span id="scoreBadge" class="score-badge">Score: 0</span>
+          </div>
+          <div class="progress-track" aria-label="Quiz progress"><div id="progressFill" class="progress-fill"></div></div>
+          <div class="question-meta"><span id="category" class="category"></span><span id="difficulty" class="difficulty"></span></div>
+          <h2 id="questionText" class="question"></h2>
+          <div id="answers" class="answers" role="group" aria-label="Answer choices"></div>
+          <div id="feedback" class="feedback" aria-live="polite">
+            <strong id="feedbackTitle" class="feedback-title"></strong>
+            <p id="feedbackCopy" class="feedback-copy"></p>
+            <span id="reference" class="reference"></span>
+          </div>
+          <div class="actions"><button id="nextButton" class="primary-button" type="button" hidden>Next Question</button></div>
+        </div>
+
+        <section id="results" class="results" aria-live="polite">
+          <div class="result-emblem" aria-hidden="true">✓</div>
+          <p class="eyebrow">Quiz complete</p>
+          <h2>Your result</h2>
+          <div id="resultScore" class="result-score"></div>
+          <p id="resultCopy" class="result-copy"></p>
+          <button id="restartButton" class="primary-button" type="button">Restart Quiz</button>
+        </section>
+      </div>
+    </section>
+    <p class="footer-note">Questions are based on widely recognized biblical passages.</p>
+  </main>
+
+  <script>
+    "use strict";
+
+    const quizQuestions = [
+      { category: "People", difficulty: "Easy", question: "Who led the Israelites out of Egypt?", options: ["Joshua", "Moses", "Aaron", "Caleb"], answer: 1, explanation: "God called Moses to lead the Israelites out of slavery in Egypt.", reference: "Exodus 3–14" },
+      { category: "Books", difficulty: "Easy", question: "Which book is the first book of the Bible?", options: ["Exodus", "Psalms", "Genesis", "Matthew"], answer: 2, explanation: "Genesis opens the Bible with the accounts of creation, the patriarchs, and Joseph.", reference: "Genesis 1:1" },
+      { category: "Events", difficulty: "Easy", question: "What did David use to defeat Goliath?", options: ["A spear", "A sling and a stone", "A sword", "A bow"], answer: 1, explanation: "David used a sling and a stone, then took Goliath's sword after he fell.", reference: "1 Samuel 17:49–51" },
+      { category: "Places", difficulty: "Medium", question: "On which mountain did Moses receive the Ten Commandments?", options: ["Mount Carmel", "Mount Sinai", "Mount Zion", "Mount Ararat"], answer: 1, explanation: "The Lord gave the commandments to Israel through Moses at Mount Sinai.", reference: "Exodus 19–20" },
+      { category: "Teachings", difficulty: "Medium", question: "According to Jesus, what is the greatest commandment?", options: ["Keep the Sabbath", "Love the Lord your God", "Give to the poor", "Honor your parents"], answer: 1, explanation: "Jesus named wholehearted love for God as the greatest commandment.", reference: "Matthew 22:37–38" },
+      { category: "People", difficulty: "Easy", question: "Who baptized Jesus in the Jordan River?", options: ["Peter", "John the Baptist", "James", "Philip"], answer: 1, explanation: "Jesus came to John the Baptist to be baptized in the Jordan.", reference: "Matthew 3:13–17" },
+      { category: "New Testament", difficulty: "Medium", question: "Which disciple walked on water toward Jesus before becoming afraid?", options: ["Andrew", "Thomas", "Peter", "John"], answer: 2, explanation: "Peter stepped out of the boat toward Jesus, then began to sink when he became afraid.", reference: "Matthew 14:28–31" },
+      { category: "Old Testament", difficulty: "Medium", question: "Which prophet was swallowed by a great fish after fleeing from God's call?", options: ["Elijah", "Jonah", "Elisha", "Jeremiah"], answer: 1, explanation: "Jonah fled from the mission to Nineveh and was swallowed by a great fish.", reference: "Jonah 1:1–17" },
+      { category: "Books", difficulty: "Medium", question: "Which Gospel is traditionally associated with the physician Luke?", options: ["Mark", "Luke", "John", "Acts"], answer: 1, explanation: "The Gospel of Luke and Acts are traditionally attributed to Luke, a companion of Paul.", reference: "Luke 1:1–4; Colossians 4:14" },
+      { category: "Verses", difficulty: "Easy", question: "Complete the verse: “The Lord is my shepherd; I shall not ____.”", options: ["fear", "wander", "want", "fall"], answer: 2, explanation: "Psalm 23 begins with confidence in the Lord's faithful care.", reference: "Psalm 23:1" },
+      { category: "Events", difficulty: "Medium", question: "What happened on the third day after Jesus was crucified?", options: ["He ascended to heaven", "He rose from the dead", "He appeared at the temple", "He returned to Nazareth"], answer: 1, explanation: "All four Gospels proclaim that Jesus rose on the first day of the week, the third day after his crucifixion.", reference: "Luke 24:1–7" },
+      { category: "People", difficulty: "Medium", question: "Who interpreted Pharaoh's dreams in Egypt?", options: ["Daniel", "Joseph", "Jacob", "Nehemiah"], answer: 1, explanation: "Joseph explained that Pharaoh's dreams foretold seven years of abundance followed by seven years of famine.", reference: "Genesis 41:14–32" },
+      { category: "Places", difficulty: "Medium", question: "In which city was Jesus born?", options: ["Nazareth", "Jerusalem", "Bethlehem", "Capernaum"], answer: 2, explanation: "Jesus was born in Bethlehem of Judea during the reign of Herod.", reference: "Matthew 2:1; Luke 2:4–7" },
+      { category: "Teachings", difficulty: "Medium", question: "In the Parable of the Good Samaritan, who showed mercy to the injured man?", options: ["A priest", "A Levite", "A Samaritan", "An innkeeper"], answer: 2, explanation: "The Samaritan cared for the injured man after others had passed by.", reference: "Luke 10:30–37" },
+      { category: "Books", difficulty: "Difficult", question: "Which New Testament book describes the early growth of the church after Jesus' ascension?", options: ["Romans", "Acts", "Hebrews", "Revelation"], answer: 1, explanation: "Acts recounts the work of the Holy Spirit and the spread of the early church.", reference: "Acts 1:1–8" }
+    ];
+
+    const elements = {
+      quizView: document.getElementById("quizView"), results: document.getElementById("results"),
+      questionCount: document.getElementById("questionCount"), scoreBadge: document.getElementById("scoreBadge"),
+      progressFill: document.getElementById("progressFill"), category: document.getElementById("category"),
+      difficulty: document.getElementById("difficulty"), questionText: document.getElementById("questionText"),
+      answers: document.getElementById("answers"), feedback: document.getElementById("feedback"),
+      feedbackTitle: document.getElementById("feedbackTitle"), feedbackCopy: document.getElementById("feedbackCopy"),
+      reference: document.getElementById("reference"), nextButton: document.getElementById("nextButton"),
+      resultScore: document.getElementById("resultScore"), resultCopy: document.getElementById("resultCopy"), restartButton: document.getElementById("restartButton")
+    };
+
+    let currentQuestion = 0;
+    let score = 0;
+    let hasAnswered = false;
+
+    function renderQuestion() {
+      const item = quizQuestions[currentQuestion];
+      hasAnswered = false;
+      elements.questionCount.textContent = `Question ${currentQuestion + 1} of ${quizQuestions.length}`;
+      elements.scoreBadge.textContent = `Score: ${score}`;
+      elements.progressFill.style.width = `${(currentQuestion / quizQuestions.length) * 100}%`;
+      elements.category.textContent = item.category;
+      elements.difficulty.textContent = item.difficulty;
+      elements.questionText.textContent = item.question;
+      elements.answers.replaceChildren();
+      elements.feedback.className = "feedback";
+      elements.nextButton.hidden = true;
+
+      item.options.forEach((option, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "answer";
+        button.innerHTML = `<span class="answer-letter">${String.fromCharCode(65 + index)}</span><span class="answer-text"></span>`;
+        button.querySelector(".answer-text").textContent = option;
+        button.addEventListener("click", () => selectAnswer(index));
+        elements.answers.append(button);
+      });
+    }
+
+    function selectAnswer(selectedIndex) {
+      if (hasAnswered) return;
+      hasAnswered = true;
+      const item = quizQuestions[currentQuestion];
+      const buttons = elements.answers.querySelectorAll(".answer");
+      const isCorrect = selectedIndex === item.answer;
+      if (isCorrect) score += 1;
+
+      buttons.forEach((button, index) => {
+        button.disabled = true;
+        if (index === item.answer) button.classList.add("correct");
+        else if (index === selectedIndex) button.classList.add("incorrect");
+        else button.classList.add("dimmed");
+      });
+
+      elements.scoreBadge.textContent = `Score: ${score}`;
+      elements.feedback.className = `feedback visible ${isCorrect ? "correct" : "incorrect"}`;
+      elements.feedbackTitle.textContent = isCorrect ? "Correct answer" : "Not quite";
+      elements.feedbackCopy.textContent = item.explanation;
+      elements.reference.textContent = item.reference;
+      elements.nextButton.textContent = currentQuestion === quizQuestions.length - 1 ? "See Results" : "Next Question";
+      elements.nextButton.hidden = false;
+    }
+
+    function showResults() {
+      const percentage = Math.round((score / quizQuestions.length) * 100);
+      let message = "A thoughtful start—review the references and try again to deepen your knowledge.";
+      if (percentage >= 90) message = "Excellent work. You showed a strong grasp of Scripture across the quiz.";
+      else if (percentage >= 70) message = "Well done. You have a solid foundation—keep exploring the passages.";
+      else if (percentage >= 50) message = "Good effort. A little more time in the references will take you even further.";
+      elements.quizView.hidden = true;
+      elements.results.classList.add("active");
+      elements.resultScore.textContent = `${score} / ${quizQuestions.length}`;
+      elements.resultCopy.textContent = `${percentage}% — ${message}`;
+      elements.progressFill.style.width = "100%";
+    }
+
+    function nextQuestion() {
+      if (!hasAnswered) return;
+      if (currentQuestion === quizQuestions.length - 1) showResults();
+      else { currentQuestion += 1; renderQuestion(); }
+    }
+
+    function restartQuiz() {
+      currentQuestion = 0;
+      score = 0;
+      hasAnswered = false;
+      elements.results.classList.remove("active");
+      elements.quizView.hidden = false;
+      renderQuestion();
+    }
+
+    elements.nextButton.addEventListener("click", nextQuestion);
+    elements.restartButton.addEventListener("click", restartQuiz);
+    renderQuestion();
+  </script>
+</body>
+</html>
