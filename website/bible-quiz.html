@@ -74,7 +74,23 @@
     .subtitle { max-width: 37rem; margin: 12px 0 0; color: var(--muted); font-size: 1rem; }
 
     .quiz-body { padding: 30px 36px 36px; }
+    .quiz-options { margin-bottom: 28px; padding: 19px; border: 1px solid #ded8ca; border-radius: 16px; background: #faf8f2; }
+    .options-heading { margin: 0 0 13px; color: var(--navy); font-family: Georgia, "Times New Roman", serif; font-size: 1.13rem; }
+    .option-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .option-label { display: grid; gap: 5px; color: var(--muted); font-size: .75rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+    select { width: 100%; min-height: 40px; padding: 7px 30px 7px 10px; border: 1px solid var(--border); border-radius: 9px; color: var(--ink); font: inherit; font-size: .92rem; font-weight: 650; background: #fff; }
+    select:focus-visible, .toggle input:focus-visible + span { outline: 3px solid rgba(37, 99, 168, .35); outline-offset: 2px; }
+    .option-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 15px; }
+    .toggle { display: inline-flex; align-items: center; gap: 8px; color: #465163; font-size: .88rem; font-weight: 700; cursor: pointer; }
+    .toggle input { position: absolute; opacity: 0; }
+    .toggle span { width: 38px; height: 22px; border-radius: 999px; background: #c9c8c3; transition: background .2s ease; }
+    .toggle span::after { display: block; width: 16px; height: 16px; margin: 3px; border-radius: 50%; content: ""; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .2s ease; }
+    .toggle input:checked + span { background: var(--green); }
+    .toggle input:checked + span::after { transform: translateX(16px); }
+    .small-button { padding: 9px 13px; border: 1px solid #9bb6ce; border-radius: 9px; color: var(--navy); font: inherit; font-size: .85rem; font-weight: 800; cursor: pointer; background: #fff; }
+    .small-button:hover { background: #f3f8fb; }
     .status-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .status-group { display: flex; align-items: center; gap: 8px; }
     .question-count { color: var(--muted); font-size: .91rem; font-weight: 700; }
     .score-badge { padding: 5px 10px; border-radius: 999px; color: var(--navy); background: #e9f0f5; font-size: .83rem; font-weight: 800; }
     .progress-track { height: 7px; margin-bottom: 29px; overflow: hidden; border-radius: 99px; background: #e8e4db; }
@@ -132,9 +148,11 @@
     .results h2 { margin: 0; color: var(--navy); font-size: 2rem; }
     .result-score { margin: 11px 0 7px; color: var(--gold); font-family: Georgia, serif; font-size: clamp(2.5rem, 8vw, 4rem); font-weight: 700; line-height: 1; }
     .result-copy { max-width: 440px; margin: 0 auto 25px; color: var(--muted); }
+    .best-score { margin: -15px 0 22px; color: var(--green); font-size: .85rem; font-weight: 800; }
     .results .primary-button { min-width: 178px; }
     .quiz-view[hidden] { display: none; }
     .footer-note { margin: 22px 0 0; color: #7a8391; font-size: .8rem; text-align: center; }
+    .shortcut-note { margin: 16px 0 0; color: #7a8391; font-size: .78rem; text-align: center; }
 
     @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     @media (max-width: 600px) {
@@ -147,6 +165,8 @@
       .question { font-size: 1.34rem; }
       .answer { min-height: 62px; padding: 12px; }
       .answer-text { font-size: .95rem; }
+      .option-grid { grid-template-columns: 1fr; }
+      .option-footer { align-items: flex-start; flex-direction: column; }
       .actions { display: block; }
       .primary-button { width: 100%; min-height: 48px; }
     }
@@ -167,14 +187,45 @@
       </header>
 
       <div class="quiz-body">
+        <form id="quizOptions" class="quiz-options">
+          <h2 class="options-heading">Make it your quiz</h2>
+          <div class="option-grid">
+            <label class="option-label">Focus
+              <select id="focusSelect" name="focus">
+                <option value="all">All Scripture</option>
+                <option value="old">Old Testament</option>
+                <option value="new">New Testament</option>
+              </select>
+            </label>
+            <label class="option-label">Difficulty
+              <select id="difficultySelect" name="difficulty">
+                <option value="all">All levels</option>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Difficult">Difficult</option>
+              </select>
+            </label>
+            <label class="option-label">Questions
+              <select id="lengthSelect" name="length">
+                <option value="5">5 questions</option>
+                <option value="10">10 questions</option>
+                <option value="15" selected>15 questions</option>
+              </select>
+            </label>
+          </div>
+          <div class="option-footer">
+            <label class="toggle"><input id="shuffleToggle" type="checkbox" checked><span aria-hidden="true"></span>Shuffle question order</label>
+            <button class="small-button" type="submit">Start selected quiz</button>
+          </div>
+        </form>
         <div id="quizView" class="quiz-view">
           <div class="status-row">
             <span id="questionCount" class="question-count" aria-live="polite">Question 1 of 15</span>
-            <span id="scoreBadge" class="score-badge">Score: 0</span>
+            <div class="status-group"><span id="streakBadge" class="score-badge">Streak: 0</span><span id="scoreBadge" class="score-badge">Score: 0</span></div>
           </div>
           <div class="progress-track" aria-label="Quiz progress"><div id="progressFill" class="progress-fill"></div></div>
           <div class="question-meta"><span id="category" class="category"></span><span id="difficulty" class="difficulty"></span></div>
-          <h2 id="questionText" class="question"></h2>
+          <h2 id="questionText" class="question" tabindex="-1"></h2>
           <div id="answers" class="answers" role="group" aria-label="Answer choices"></div>
           <div id="feedback" class="feedback" aria-live="polite">
             <strong id="feedbackTitle" class="feedback-title"></strong>
@@ -182,6 +233,7 @@
             <span id="reference" class="reference"></span>
           </div>
           <div class="actions"><button id="nextButton" class="primary-button" type="button" hidden>Next Question</button></div>
+          <p class="shortcut-note">Tip: press 1–4 to choose an answer, then Enter for the next question.</p>
         </div>
 
         <section id="results" class="results" aria-live="polite">
@@ -190,7 +242,8 @@
           <h2>Your result</h2>
           <div id="resultScore" class="result-score"></div>
           <p id="resultCopy" class="result-copy"></p>
-          <button id="restartButton" class="primary-button" type="button">Restart Quiz</button>
+          <p id="bestScore" class="best-score" hidden></p>
+          <button id="restartButton" class="primary-button" type="button">Play Again</button>
         </section>
       </div>
     </section>
@@ -221,24 +274,32 @@
     const elements = {
       quizView: document.getElementById("quizView"), results: document.getElementById("results"),
       questionCount: document.getElementById("questionCount"), scoreBadge: document.getElementById("scoreBadge"),
+      streakBadge: document.getElementById("streakBadge"), quizOptions: document.getElementById("quizOptions"),
+      focusSelect: document.getElementById("focusSelect"), difficultySelect: document.getElementById("difficultySelect"),
+      lengthSelect: document.getElementById("lengthSelect"), shuffleToggle: document.getElementById("shuffleToggle"),
       progressFill: document.getElementById("progressFill"), category: document.getElementById("category"),
       difficulty: document.getElementById("difficulty"), questionText: document.getElementById("questionText"),
       answers: document.getElementById("answers"), feedback: document.getElementById("feedback"),
       feedbackTitle: document.getElementById("feedbackTitle"), feedbackCopy: document.getElementById("feedbackCopy"),
       reference: document.getElementById("reference"), nextButton: document.getElementById("nextButton"),
-      resultScore: document.getElementById("resultScore"), resultCopy: document.getElementById("resultCopy"), restartButton: document.getElementById("restartButton")
+      resultScore: document.getElementById("resultScore"), resultCopy: document.getElementById("resultCopy"),
+      bestScore: document.getElementById("bestScore"), restartButton: document.getElementById("restartButton")
     };
 
+    const oldTestamentQuestionIndexes = new Set([0, 1, 2, 3, 7, 9, 11]);
+    let activeQuestions = [...quizQuestions];
     let currentQuestion = 0;
     let score = 0;
+    let streak = 0;
     let hasAnswered = false;
 
     function renderQuestion() {
-      const item = quizQuestions[currentQuestion];
+      const item = activeQuestions[currentQuestion];
       hasAnswered = false;
-      elements.questionCount.textContent = `Question ${currentQuestion + 1} of ${quizQuestions.length}`;
+      elements.questionCount.textContent = `Question ${currentQuestion + 1} of ${activeQuestions.length}`;
       elements.scoreBadge.textContent = `Score: ${score}`;
-      elements.progressFill.style.width = `${(currentQuestion / quizQuestions.length) * 100}%`;
+      elements.streakBadge.textContent = `Streak: ${streak}`;
+      elements.progressFill.style.width = `${(currentQuestion / activeQuestions.length) * 100}%`;
       elements.category.textContent = item.category;
       elements.difficulty.textContent = item.difficulty;
       elements.questionText.textContent = item.question;
@@ -250,6 +311,7 @@
         const button = document.createElement("button");
         button.type = "button";
         button.className = "answer";
+        button.setAttribute("aria-label", `Option ${index + 1}: ${option}`);
         button.innerHTML = `<span class="answer-letter">${String.fromCharCode(65 + index)}</span><span class="answer-text"></span>`;
         button.querySelector(".answer-text").textContent = option;
         button.addEventListener("click", () => selectAnswer(index));
@@ -260,10 +322,11 @@
     function selectAnswer(selectedIndex) {
       if (hasAnswered) return;
       hasAnswered = true;
-      const item = quizQuestions[currentQuestion];
+      const item = activeQuestions[currentQuestion];
       const buttons = elements.answers.querySelectorAll(".answer");
       const isCorrect = selectedIndex === item.answer;
-      if (isCorrect) score += 1;
+      if (isCorrect) { score += 1; streak += 1; }
+      else streak = 0;
 
       buttons.forEach((button, index) => {
         button.disabled = true;
@@ -273,44 +336,84 @@
       });
 
       elements.scoreBadge.textContent = `Score: ${score}`;
+      elements.streakBadge.textContent = `Streak: ${streak}`;
       elements.feedback.className = `feedback visible ${isCorrect ? "correct" : "incorrect"}`;
       elements.feedbackTitle.textContent = isCorrect ? "Correct answer" : "Not quite";
       elements.feedbackCopy.textContent = item.explanation;
       elements.reference.textContent = item.reference;
-      elements.nextButton.textContent = currentQuestion === quizQuestions.length - 1 ? "See Results" : "Next Question";
+      elements.nextButton.textContent = currentQuestion === activeQuestions.length - 1 ? "See Results" : "Next Question";
       elements.nextButton.hidden = false;
     }
 
     function showResults() {
-      const percentage = Math.round((score / quizQuestions.length) * 100);
+      const percentage = Math.round((score / activeQuestions.length) * 100);
       let message = "A thoughtful start—review the references and try again to deepen your knowledge.";
       if (percentage >= 90) message = "Excellent work. You showed a strong grasp of Scripture across the quiz.";
       else if (percentage >= 70) message = "Well done. You have a solid foundation—keep exploring the passages.";
       else if (percentage >= 50) message = "Good effort. A little more time in the references will take you even further.";
       elements.quizView.hidden = true;
       elements.results.classList.add("active");
-      elements.resultScore.textContent = `${score} / ${quizQuestions.length}`;
+      elements.resultScore.textContent = `${score} / ${activeQuestions.length}`;
       elements.resultCopy.textContent = `${percentage}% — ${message}`;
       elements.progressFill.style.width = "100%";
+      try {
+        const bestScore = Number(localStorage.getItem("livingWordBestScore") || 0);
+        const highScore = Math.max(percentage, bestScore);
+        if (percentage > bestScore) localStorage.setItem("livingWordBestScore", String(percentage));
+        elements.bestScore.textContent = `Best score on this device: ${highScore}%`;
+        elements.bestScore.hidden = false;
+      } catch { /* The quiz works even when browser storage is unavailable. */ }
     }
 
     function nextQuestion() {
       if (!hasAnswered) return;
-      if (currentQuestion === quizQuestions.length - 1) showResults();
+      if (currentQuestion === activeQuestions.length - 1) showResults();
       else { currentQuestion += 1; renderQuestion(); }
     }
 
     function restartQuiz() {
       currentQuestion = 0;
       score = 0;
+      streak = 0;
       hasAnswered = false;
       elements.results.classList.remove("active");
       elements.quizView.hidden = false;
       renderQuestion();
     }
 
+    function shuffle(items) {
+      return [...items].sort(() => Math.random() - .5);
+    }
+
+    function startSelectedQuiz(event) {
+      event.preventDefault();
+      const focus = elements.focusSelect.value;
+      const difficulty = elements.difficultySelect.value;
+      const requestedLength = Number(elements.lengthSelect.value);
+      let choices = quizQuestions.filter((item, index) => {
+        const fitsFocus = focus === "all" || (focus === "old" ? oldTestamentQuestionIndexes.has(index) : !oldTestamentQuestionIndexes.has(index));
+        return fitsFocus && (difficulty === "all" || item.difficulty === difficulty);
+      });
+      if (!choices.length) return;
+      if (elements.shuffleToggle.checked) choices = shuffle(choices);
+      activeQuestions = choices.slice(0, Math.min(requestedLength, choices.length));
+      restartQuiz();
+      document.querySelector("#questionText").focus();
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (event.target.matches("select, button")) return;
+      if (!hasAnswered && /^[1-4]$/.test(event.key)) {
+        const button = elements.answers.children[Number(event.key) - 1];
+        if (button) button.click();
+      } else if (hasAnswered && event.key === "Enter" && !elements.nextButton.hidden) {
+        elements.nextButton.click();
+      }
+    });
+
     elements.nextButton.addEventListener("click", nextQuestion);
     elements.restartButton.addEventListener("click", restartQuiz);
+    elements.quizOptions.addEventListener("submit", startSelectedQuiz);
     renderQuestion();
   </script>
 </body>
